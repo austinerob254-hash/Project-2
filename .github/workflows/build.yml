@@ -58,7 +58,7 @@ jobs:
           zlib1g-dev libsqlite3-dev sqlite3 bzip2 libbz2-dev libssl-dev \
           libffi-dev liblzma-dev cmake
 
-    # 🔹 Install Android SDK command-line tools (older compatible version)
+    # 🔹 Install older, compatible Android SDK command-line tools
     - name: Install Android SDK cmdline-tools
       run: |
         mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
@@ -70,12 +70,12 @@ jobs:
     # 🔹 Accept Android licenses
     - name: Accept Android SDK licenses
       run: |
-        yes | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --licenses
+        yes | $ANDROID_SDK_ROOT/cmdline-tools/tools/bin/sdkmanager --licenses
 
     # 🔹 Install required SDK packages and NDK
     - name: Install required Android packages
       run: |
-        $ANDROID_SDK_ROOT/tools/bin/sdkmanager \
+        $ANDROID_SDK_ROOT/cmdline-tools/tools/bin/sdkmanager \
           "platform-tools" \
           "platforms;android-33" \
           "build-tools;33.0.2" \
