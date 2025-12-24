@@ -98,7 +98,6 @@ jobs:
     # 🔹 Initialize Buildozer and python-for-android
     - name: Initialize Buildozer
       run: |
-        buildozer init
         buildozer android update
 
     # 🔹 Build APK
