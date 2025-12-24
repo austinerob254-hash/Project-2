@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: '3.10'
 
-    # Incrementing the key version (e.g., -v4-) forces a fresh start
+    # Change the cache version (v4) to force GitHub to ignore corrupted 36.1 files
     - name: Cache Buildozer
       uses: actions/cache@v4
       with:
@@ -44,13 +44,14 @@ jobs:
 
     - name: Build and Force Licenses
       run: |
-        # 1. Initialize folders (will fail on licenses, which is expected)
+        # 1. Initialize folders (fails on licenses, which is fine)
         yes | buildozer android debug || true
 
         # 2. Target the local Buildozer SDK manager path directly
         export SDK_PATH=$HOME/.buildozer/android/platform/android-sdk
         
-        # 3. Manually accept licenses using a 'Here Document' to avoid Broken Pipe
+        # 3. Use 'Here Document' to send exactly 6 'y' responses. 
+        # This prevents the 'Broken pipe' crash and handles the 36.1 license.
         if [ -d "$SDK_PATH/cmdline-tools/latest/bin" ]; then
           $SDK_PATH/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_PATH --licenses <<EEF
         y
@@ -62,7 +63,7 @@ jobs:
         EEF
         fi
 
-        # 4. Final Build: 'clean' ensures no corrupted AAB recipes remain
+        # 4. Final Build: 'clean' fixes the "AAB support" error by refreshing recipes
         buildozer android clean
         buildozer android debug
 
@@ -71,6 +72,7 @@ jobs:
       with:
         name: galaxy-apk
         path: bin/*.apk
+
 
 
 
