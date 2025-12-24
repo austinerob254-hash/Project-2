@@ -1,0 +1,79 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # Using a fresh cache version (-v3-) to wipe old, broken AAB data
+    - name: Cache Buildozer
+      uses: actions/cache@v4
+      with:
+        path: .buildozer
+        key: ${{ runner.os }}-buildozer-v3-${{ hashFiles('buildozer.spec') }}
+
+    - name: Install Linux Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
+          libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
+          libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 \
+          gstreamer1.0-plugins-base gstreamer1.0-plugins-good libsqlite3-dev \
+          sqlite3 bzip2 libbz2-dev libssl-dev openssl libgdbm-dev \
+          libncurses5-dev libncursesw5-dev libreadline-dev uuid-dev libffi-dev \
+          liblzma-dev tk-dev libdb-dev autoconf automake libtool pkg-config \
+          cmake ant
+
+    - name: Install Buildozer and Cython
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer cython==0.29.33 setuptools
+
+    - name: Build and Force Licenses
+      run: |
+        # 1. Initialize folders (will fail on licenses, which is expected)
+        yes | buildozer android debug || true
+
+        # 2. Target the local Buildozer SDK manager path directly
+        export SDK_PATH=$HOME/.buildozer/android/platform/android-sdk
+        
+        # 3. Manually accept licenses one-by-one to avoid Broken Pipe error
+        # This handles the 36.1.0 version specifically
+        if [ -d "$SDK_PATH/cmdline-tools/latest/bin" ]; then
+          $SDK_PATH/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_PATH --licenses <<EEF
+        y
+        y
+        y
+        y
+        y
+        y
+        EEF
+        fi
+
+        # 4. Final Build: 'clean' fixes the "AAB support" error by refreshing recipes
+        buildozer android clean
+        buildozer android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: galaxy-apk
+        path: bin/*.apk
+
+
+
+
+
