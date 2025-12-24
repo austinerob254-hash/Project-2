@@ -35,7 +35,7 @@ icon.adaptive_foreground.file_name=%(source.dir)s/Foreground.png
 icon.adaptive_background.filename=%(source.dir)s/Background.jpg
 # (int) Android SDK target version
 android.targetsdk = 33
-p4a.branch=develop
+p4a.branch=master
 android.accept_sdk_license = True
 android.build_tools_version= 34.0.0
 
@@ -51,7 +51,7 @@ android.archs = arm64-v8a, armeabi-v7a
 android.ndk_api = 21
 
 # (int) Android NDK version to use
-#android.ndk = 23b
+android.ndk = 25c
 
 # (list) Permissions (for Android)
 # Example: android.permissions = INTERNET, WAKE_LOCK
