@@ -1,4 +1,4 @@
-   name: Build APK
+name: Build APK
 
 on:
   push:
@@ -106,4 +106,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: galaxy-apk
-        path: bin/*.apk 
+        path: bin/*.apk   
