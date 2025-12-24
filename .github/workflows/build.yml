@@ -1,64 +1,24 @@
-name: Build Kivy APK
+name: Build Kivy App to APK
+
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ] # This triggers the workflow on pushes to the main branch
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest # The build process runs on an fresh Ubuntu environment
 
     steps:
-      # 1️⃣ Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # 2️⃣ Get date for caching
-      - name: Get Date
-        id: get-date
-        run: echo "date=$(date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
-
-      # 3️⃣ Install system dependencies
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools \
-            git zip unzip openjdk-11-jdk wget python3-dev
-          pip install --upgrade pip
-          pip install buildozer cython
-
-      # 4️⃣ Cache Buildozer global directory (SDK, NDK, Python-for-Android)
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v2
-        with:
-          path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
-
-      # 5️⃣ Cache Buildozer project directory (local builds)
-      - name: Cache Buildozer project directory
-        uses: actions/cache@v2
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
-
-      # 6️⃣ Cache Android platforms (SDK/NDK and recipes)
-      - name: Cache Android platforms
-        uses: actions/cache@v2
-        with:
-          path: .buildozer/android/platform
-          key: ${{ runner.os }}-android-platform-${{ hashFiles('buildozer.spec') }}
-
-      # 7️⃣ Build APK with Buildozer
+      - uses: actions/checkout@v4 # Step 1: Check out your code from the repository
+      
       - name: Build APK
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+        uses: digreatbrian/buildozer-action@v2 # Step 2: Use the specialized GitHub action for Buildozer
         with:
-          command: buildozer android debug
-          buildozer_version: stable
+          python-version: 3.8 # Specify the desired Python version
+          buildozer-cmd: buildozer -v android debug # The command to execute (build in debug mode with verbose output)
 
-      # 8️⃣ Upload the APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v2
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4 # Step 3: Upload the resulting APK file as a workflow artifact
         with:
-          name: Kivy-APK
-          path: ${{ steps.buildozer.outputs.filename }}
+          name: package # The name of the downloadable artifact
+          path: ./bin/*.apk # The path where Buildozer places the generated APK file
