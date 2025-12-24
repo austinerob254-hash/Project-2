@@ -17,12 +17,12 @@ jobs:
       with:
         python-version: '3.10'
 
-    # Using a fresh cache version (-v3-) to wipe old, broken AAB data
+    # Incrementing the key version (e.g., -v4-) forces a fresh start
     - name: Cache Buildozer
       uses: actions/cache@v4
       with:
         path: .buildozer
-        key: ${{ runner.os }}-buildozer-v3-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-v4-${{ hashFiles('buildozer.spec') }}
 
     - name: Install Linux Dependencies
       run: |
@@ -50,8 +50,7 @@ jobs:
         # 2. Target the local Buildozer SDK manager path directly
         export SDK_PATH=$HOME/.buildozer/android/platform/android-sdk
         
-        # 3. Manually accept licenses one-by-one to avoid Broken Pipe error
-        # This handles the 36.1.0 version specifically
+        # 3. Manually accept licenses using a 'Here Document' to avoid Broken Pipe
         if [ -d "$SDK_PATH/cmdline-tools/latest/bin" ]; then
           $SDK_PATH/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_PATH --licenses <<EEF
         y
@@ -63,7 +62,7 @@ jobs:
         EEF
         fi
 
-        # 4. Final Build: 'clean' fixes the "AAB support" error by refreshing recipes
+        # 4. Final Build: 'clean' ensures no corrupted AAB recipes remain
         buildozer android clean
         buildozer android debug
 
@@ -72,6 +71,7 @@ jobs:
       with:
         name: galaxy-apk
         path: bin/*.apk
+
 
 
 
