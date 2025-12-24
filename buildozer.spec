@@ -1,70 +1,69 @@
 [app]
 
-# (str) Title of your application
+# Application title
 title = Galaxy
 
-# (str) Package name
+# Package name
 package.name = galaxyapp
 
-# (str) Package domain (needed for android/ios packaging)
+# Package domain
 package.domain = org.galaxy
 
-# (str) Source code where the main.py live
+# Source code directory
 source.dir = .
 
-# (list) Source files to include (leave empty to include all the files)
+# File extensions to include
 source.include_exts = py,png,jpg,kv,ttf,mp3
 
-# (list) List of requirements
-# This is crucial! List all Python packages your app imports.
-# Example: requirements = python3, kivy, kivymd
-requirements = python3, kivy
+# Python requirements
+requirements = python3,kivy
 
-# (str) Application versioning (method 1)
+# App version
 version = 0.1
 
-# (str) Presplash background color (for Android)
-# Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
-# red, blue, green, black, white, gray, cyan, magenta, yellow, lightgray,
-# darkgray, grey, lightgrey, darkgrey, aqua, fuchsia, lime, maroon, navy,
-# olive, purple, silver, teal.
-presplash.bgcolor = #000000
-# (str) Orientation (one of landscape, portrait, all or sensor)
+# Orientation
 orientation = portrait
-icon.adaptive_foreground.file_name=%(source.dir)s/Foreground.png
-icon.adaptive_background.filename=%(source.dir)s/Background.jpg
-# (int) Android SDK target version
-android.targetsdk = 33
-p4a.branch=master
-android.accept_sdk_license = True
-android.build_tools_version= 34.0.0
+
+# Presplash background color
+presplash.bgcolor = #000000
+
+# Adaptive icons
+icon.adaptive_foreground.filename = %(source.dir)s/Foreground.png
+icon.adaptive_background.filename = %(source.dir)s/Background.jpg
 
 
-# (int) Minimum API your APK / AAB will support.
-android.maxapi=33
-android.api=33
+# -------------------------
+# ANDROID CONFIGURATION
+# -------------------------
+
+# Android API levels
+android.api = 33
 android.minapi = 21
+
+# Architectures
 android.archs = arm64-v8a, armeabi-v7a
 
-# (int) Android NDK API to use. This is the minimum API your app will support,
-# it should usually match android.minapi.
+# Accept SDK licenses automatically
+android.accept_sdk_license = True
+
+# SDK & NDK paths (MATCHES build.yml)
+android.sdk_path = /home/runner/android-sdk
+android.ndk_path = /home/runner/android-sdk/ndk/25.2.9519653
+
+# NDK configuration
+android.ndk = 25c
 android.ndk_api = 21
 
-# (int) Android NDK version to use
-android.ndk = 25c
+# Build tools (MUST match installed version)
+android.build_tools_version = 33.0.2
 
-# (list) Permissions (for Android)
-# Example: android.permissions = INTERNET, WAKE_LOCK
-# Add any permissions your app needs here (e.g., CAMERA, READ_EXTERNAL_STORAGE)
-#android.permissions = INTERNET
-
-# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
+# Log level (2 = debug)
 log_level = 2
 
-# The default options for the other sections like [android], [ios], [desktop],
-# etc. are usually fine for a basic Colab build.
-# You can uncomment and modify them if you have advanced needs.
+
+# -------------------------
+# BUILDOZER INTERNAL
+# -------------------------
 
 [buildozer]
-# (str) Path to build artifact storage, absolute or relative to spec file.
 build_dir = ./.buildozer
