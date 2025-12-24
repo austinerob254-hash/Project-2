@@ -67,15 +67,22 @@ jobs:
         unzip commandlinetools-linux-*.zip
         mv cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
 
+    # 🔹 Create symlink for Buildozer to find sdkmanager
+    - name: Fix Buildozer SDK path
+      run: |
+        mkdir -p $ANDROID_SDK_ROOT/tools/bin
+        ln -s $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $ANDROID_SDK_ROOT/tools/bin/sdkmanager
+        ln -s $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager $ANDROID_SDK_ROOT/tools/bin/avdmanager
+
     # 🔹 Accept Android licenses
     - name: Accept Android SDK licenses
       run: |
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        yes | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --licenses
 
     # 🔹 Install required SDK packages and NDK
     - name: Install required Android packages
       run: |
-        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+        $ANDROID_SDK_ROOT/tools/bin/sdkmanager \
           "platform-tools" \
           "platforms;android-33" \
           "build-tools;33.0.2" \
@@ -95,7 +102,7 @@ jobs:
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
         echo "PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
-    # 🔹 Initialize Buildozer and python-for-android
+    # 🔹 Initialize Buildozer
     - name: Initialize Buildozer
       run: |
         buildozer android update
