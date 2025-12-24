@@ -1,0 +1,26 @@
+#:import menu menu
+
+
+background:
+
+<background>:
+    Image:
+        source:"Background.jpg"
+        allow_stretch:True
+        keep_ratio:False
+    Mainwidget
+    
+                            
+<Mainwidget>:
+    menu_widget:menu_widget
+    perspectivepoint_x:self.width*0.5
+    perspectivepoint_y:self.height*0.75
+    
+    Menu:
+        id:menu_widget
+    Label:
+        text:root.score
+        font_name:"Lcd1.ttf"
+        font_size:dp(30)
+        size_hint:0.18,0.18
+        pos_hint:{"x":0.05,"top":1}

@@ -1,0 +1,23 @@
+Menu:
+    
+<Menu>:
+    canvas.before:
+        Color:
+            rgba:0,0,0,0.8
+        Rectangle:
+            size:self.size
+    Label:
+        
+        font_name:"Lcd1.ttf"
+        font_size:dp(40)
+        text:root.menu_title
+        pos_hint:{"center_x":0.5,"center_y":0.6}
+    Button:
+        font_name:"Lcd1.ttf"
+        font_size:dp(30)
+        text:root.button_title
+        pos_hint:{"center_x":0.5,"center_y":0.4}
+        size_hint:0.2,0.1
+        background_normal:''
+        background_color:1,0,0.4,0.85
+        on_press:root.parent.game_start_function()
