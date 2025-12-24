@@ -1,3 +1,4 @@
+
 name: Build APK
 
 on:
@@ -8,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
 
     steps:
     - uses: actions/checkout@v4
@@ -30,7 +28,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .buildozer
-        key: ${{ runner.os }}-buildozer-v5-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-v6-${{ hashFiles('buildozer.spec') }}
 
     - name: Install Linux Dependencies
       run: |
@@ -49,10 +47,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install buildozer cython==0.29.33 setuptools
 
+    # 🔹 STEP 1: Initialize Android SDK/NDK (no failure allowed)
+    - name: Initialize Android SDK
+      run: |
+        buildozer android debug || true
+
+    # 🔹 STEP 2: Accept licenses AFTER SDK exists
     - name: Accept Android SDK licenses
       run: |
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        SDK_PATH=$HOME/.buildozer/android/platform/android-sdk
+        yes | $SDK_PATH/cmdline-tools/latest/bin/sdkmanager --licenses
 
+    # 🔹 STEP 3: Clean + real build
     - name: Build APK
       run: |
         buildozer android clean
@@ -63,7 +69,6 @@ jobs:
       with:
         name: galaxy-apk
         path: bin/*.apk
-
 
 
 
