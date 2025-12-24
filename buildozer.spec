@@ -42,7 +42,7 @@ android.build_tools_version= 34.0.0
 
 # (int) Minimum API your APK / AAB will support.
 android.maxapi=33
-android.api=34
+android.api=33
 android.minapi = 21
 android.archs = arm64-v8a, armeabi-v7a
 
