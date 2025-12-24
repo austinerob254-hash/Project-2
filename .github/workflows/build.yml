@@ -1,41 +1,64 @@
-name: CI
+name: Build Kivy APK
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout code
+      # 1️⃣ Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
+      # 2️⃣ Get date for caching
       - name: Get Date
         id: get-date
         run: echo "date=$(date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
 
+      # 3️⃣ Install system dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-setuptools \
+            git zip unzip openjdk-11-jdk wget python3-dev
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      # 4️⃣ Cache Buildozer global directory (SDK, NDK, Python-for-Android)
       - name: Cache Buildozer global directory
         uses: actions/cache@v2
         with:
           path: .buildozer_global
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
 
-      - name: Cache Buildozer local directory
+      # 5️⃣ Cache Buildozer project directory (local builds)
+      - name: Cache Buildozer project directory
         uses: actions/cache@v2
         with:
           path: .buildozer
           key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Build with Buildozer
+      # 6️⃣ Cache Android platforms (SDK/NDK and recipes)
+      - name: Cache Android platforms
+        uses: actions/cache@v2
+        with:
+          path: .buildozer/android/platform
+          key: ${{ runner.os }}-android-platform-${{ hashFiles('buildozer.spec') }}
+
+      # 7️⃣ Build APK with Buildozer
+      - name: Build APK
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
         with:
           command: buildozer android debug
           buildozer_version: stable
 
-      - name: Upload artifacts
+      # 8️⃣ Upload the APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
-          name: package
+          name: Kivy-APK
           path: ${{ steps.buildozer.outputs.filename }}
