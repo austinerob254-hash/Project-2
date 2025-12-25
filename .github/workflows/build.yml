@@ -1,13 +1,11 @@
-name: Build APK
+name: Build Kivy APK
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     env:
       ANDROID_SDK_ROOT: /home/runner/android-sdk
@@ -15,107 +13,59 @@ jobs:
       ANDROID_NDK_HOME: /home/runner/android-sdk/ndk/25.2.9519653
 
     steps:
-    - uses: actions/checkout@v4
-
-    # 🔹 Cache Python packages
-    - name: Cache Python packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+    - name: Checkout source
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-
-    # 🔹 Cache Buildozer and python-for-android builds
-    - name: Cache Buildozer artifacts
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.buildozer
-          ~/.local/share/python-for-android
-        key: ${{ runner.os }}-buildozer-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+        python-version: "3.8"
 
     - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        distribution: "temurin"
+        java-version: "17"
 
-    - name: Install Linux Dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          build-essential git python3-dev ffmpeg unzip wget \
-          libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-          libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-          zlib1g-dev libsqlite3-dev sqlite3 bzip2 libbz2-dev libssl-dev \
-          libffi-dev liblzma-dev cmake
+          build-essential git unzip zip \
+          python3-dev python3-pip \
+          libssl-dev libffi-dev libsqlite3-dev \
+          zlib1g-dev libbz2-dev liblzma-dev \
+          libncurses5-dev libncursesw5-dev \
+          libreadline-dev liblzma-dev \
+          libgl1-mesa-dev \
+          openjdk-17-jdk \
+          autoconf automake libtool pkg-config \
+          libsdl2-dev libsdl2-image-dev \
+          libsdl2-mixer-dev libsdl2-ttf-dev
 
-    # 🔹 Install Android SDK command-line tools (older compatible version)
-    - name: Install Android SDK cmdline-tools
+    - name: Upgrade pip and install Python tools
       run: |
-        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-        cd /tmp
-        wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-        unzip commandlinetools-linux-*.zip
-        mv cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+        pip install --upgrade pip
+        pip install cython==0.29.36 virtualenv
+        pip uninstall -y sh || true
+        pip install "sh<2.0"
+        pip install buildozer python-for-android kivy
 
-    # 🔹 Create symlink for Buildozer to find sdkmanager
-    - name: Fix Buildozer SDK path
+    - name: Clean previous build artifacts
       run: |
-        mkdir -p $ANDROID_SDK_ROOT/tools/bin
-        ln -s $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $ANDROID_SDK_ROOT/tools/bin/sdkmanager
-        ln -s $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager $ANDROID_SDK_ROOT/tools/bin/avdmanager
+        rm -rf .buildozer
+        rm -rf ~/.buildozer
 
-    # 🔹 Accept Android licenses
     - name: Accept Android SDK licenses
       run: |
-        yes | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --licenses
+        yes | sdkmanager --licenses || true
 
-    # 🔹 Install required SDK packages and NDK
-    - name: Install required Android packages
+    - name: Build APK (Debug)
       run: |
-        $ANDROID_SDK_ROOT/tools/bin/sdkmanager \
-          "platform-tools" \
-          "platforms;android-33" \
-          "build-tools;33.0.2" \
-          "ndk;25.2.9519653"
+        buildozer -v android debug
 
-    # 🔹 Install Buildozer and python-for-android
-    - name: Install Buildozer and p4a
-      run: |
-        python -m pip install --upgrade pip
-        pip install buildozer==1.5.0 python-for-android cython==0.29.33 setuptools
-
-    # 🔹 Export Android paths for Buildozer
-    - name: Export Android paths
-      run: |
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-        echo "PATH=$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-
-    # 🔹 Initialize Buildozer
-    - name: Initialize Buildozer
-      run: |
-        buildozer android update
-
-    # 🔹 Build APK
-    - name: Build APK
-      run: |
-        buildozer android clean
-        buildozer android debug
-
-    # 🔹 Upload APK artifact
-    - name: Upload APK artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: galaxy-apk
+        name: Galaxy-APK
         path: bin/*.apk
